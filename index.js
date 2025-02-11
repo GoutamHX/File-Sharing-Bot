@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
-app.use(express.json()); // ✅ Add this to parse JSON requests
+app.use(express.json()); // ✅ Make sure it can parse JSON requests
 
 const PORT = process.env.PORT || 8080;
 
@@ -19,14 +19,15 @@ if (isUsingPolling) {
         .then(() => console.log("🤖 Bot started in Long Polling mode (Local)"))
         .catch(err => console.error("❌ Error starting bot:", err));
 } else if (isProduction) {
-    const WEBHOOK_URL = `https://${process.env.VERCEL_URL.replace("https://", "")}/api/webhook`;
+    const WEBHOOK_URL = `${process.env.VERCEL_URL}/api/webhook`;
     bot.telegram.setWebhook(WEBHOOK_URL)
         .then(() => console.log(`✅ Webhook set to: ${WEBHOOK_URL}`))
         .catch(err => console.error("❌ Error setting webhook:", err));
 
     app.post('/api/webhook', (req, res) => {
-        bot.handleUpdate(req.body);
-        res.sendStatus(200);
+        console.log("✅ Received Telegram Webhook Update");
+        bot.handleUpdate(req.body).catch(err => console.error("❌ Error handling update:", err));
+        res.sendStatus(200); // ✅ Send 200 OK response
     });
 }
 
