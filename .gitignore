@@ -25,3 +25,4 @@ Thumbs.db
 # Ignore deployment files (optional)
 *.tar.gz
 *.zip
+.vercel

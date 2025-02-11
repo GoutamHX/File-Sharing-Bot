@@ -1,8 +1,9 @@
-import express from 'express';
+import express from "express";
+
 const app = express();
+app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.send("File-Sharing Bot is running...");
+app.get("/", (req, res) => {
+  res.send("✅ Telegram Bot is Running!");
 });
-
 export default app;
