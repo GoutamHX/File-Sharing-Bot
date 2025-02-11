@@ -30,7 +30,12 @@ if (isUsingPolling) {
     });
 }
 
-// Start Express Server
+// ✅ Add Route to Confirm Server is Running
+app.get("/", (req, res) => {
+    res.send("✅ Telegram Bot is Running!");
+});
+
+// ✅ Start Express Server
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });
