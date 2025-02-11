@@ -1,27 +1,36 @@
 import express from 'express';
 import bot from './bot/bot.js';
 import dotenv from 'dotenv';
-import { Analytics } from "@vercel/analytics/react"
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-app.use(express.json());
+// Check if running in production (Vercel) or locally
+const isUsingPolling = process.env.USE_POLLING === "true";
+const isProduction = process.env.VERCEL_URL !== undefined;
 
-// ✅ Set up Telegram Webhook
-const WEBHOOK_URL = `https://${process.env.VERCEL_URL}/api/webhook`;
+if (isUsingPolling) {
+    // ✅ Use Long Polling for Local Development
+    console.log("🟢 Running in Local Mode (Using Long Polling)...");
+    bot.launch()
+        .then(() => console.log("🤖 Bot started in Long Polling mode (Local)"))
+        .catch(err => console.error("❌ Error starting bot:", err));
+} else if (isProduction) {
+    // ✅ Use Webhook for Production
+    const WEBHOOK_URL = `https://${process.env.VERCEL_URL.replace("https://", "")}/api/webhook`;
+    bot.telegram.setWebhook(WEBHOOK_URL)
+        .then(() => console.log(`✅ Webhook set to: ${WEBHOOK_URL}`))
+        .catch(err => console.error("❌ Error setting webhook:", err));
 
-bot.telegram.setWebhook(WEBHOOK_URL)
-    .then(() => console.log(`✅ Webhook set to: ${WEBHOOK_URL}`))
-    .catch(err => console.error("❌ Error setting webhook:", err));
+    app.post('/api/webhook', (req, res) => {
+        bot.handleUpdate(req.body);
+        res.sendStatus(200);
+    });
+}
 
-app.post('/api/webhook', (req, res) => {
-    bot.handleUpdate(req.body);
-    res.sendStatus(200);
-});
-
-// ✅ Start Express server (required for Vercel)
+// Start Express Server
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });
